@@ -1,0 +1,51 @@
+@model FilmsCatalog.Models.Movie
+
+@{
+    ViewData["Title"] = "Создать карточку фильма";
+}
+
+<h1>Создание карточки фильма</h1>
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ReleaseYear" class="control-label"></label>
+                <input asp-for="ReleaseYear" class="form-control" />
+                <span asp-validation-for="ReleaseYear" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Director" class="control-label"></label>
+                <input asp-for="Director" class="form-control" />
+                <span asp-validation-for="Director" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PosterFile" class="control-label"></label>
+                <input asp-for="PosterFile" type="file" accept="image/jpeg,image/png" hidden />
+                <div id="poster-container" title="Кликните для загрузки"></div>
+            </div>
+            <div class="flex-container">
+                <div>
+                    <input type="submit" value="Создать" class="btn btn-primary" />
+                </div>
+                <div>
+                    <a asp-action="Index">К списку фильмов</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

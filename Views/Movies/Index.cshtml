@@ -1,0 +1,132 @@
+@model FilmsCatalog.Models.IndexViewModel
+
+@{
+    ViewData["Title"] = "Каталог";
+    int iterationMax = 
+        (Model.PageInfo.PageNumber + Model.PageInfo.PaginationPageCount / 2) < Model.PageInfo.TotalPages ? 
+        Model.PageInfo.PageNumber + Model.PageInfo.PaginationPageCount / 2 :
+        Model.PageInfo.TotalPages; 
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a asp-action="Create">Создать карточку фильма</a>
+</p>
+
+@if(Model.PageInfo.TotalItemsCount > 0){
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Movies.First().Title)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Movies.First().Description)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Movies.First().CreatorName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Movies.First().ReleaseYear)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Movies.First().Director)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Movies) {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Description)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CreatorName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ReleaseYear)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Director)
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.ID">Подробнее</a>
+                        @if(item.IsCreator == true){
+                            <span>
+                                | <a asp-action="Edit" asp-route-id="@item.ID">Изменить</a>
+                                | <a asp-action="Delete" asp-route-id="@item.ID">Удалить</a>
+                            </span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if(Model.PageInfo.TotalPages > 1){
+        <nav aria-label="Каталог фильмов">
+        <ul class="pagination justify-content-center">
+            @if (Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
+            {
+                <li class="page-item">
+                <a class="page-link" href="?page=1">
+                    Первая
+                </a>
+                </li>
+            }
+            @if (Model.PageInfo.HasPreviousPage && Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
+            {
+                <li class="page-item">
+                <a class="page-link" href="?page=@(Model.PageInfo.PageNumber - 1)" aria-label="Предыдущая">
+                    <span aria-hidden="true">«</span>
+                    <span class="sr-only">Предыдущая</span>
+                </a>
+                </li>
+            }
+            @if (Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount)
+            {
+                @for (int i = Model.PageInfo.PageNumber - Model.PageInfo.PaginationPageCount / 2 ; i <= iterationMax; i++)
+                {
+                    <li class="page-item @(@Model.PageInfo.PageNumber == i ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
+
+            }else{
+                @for (int i = 1; i <= Model.PageInfo.TotalPages; i++)
+                {
+                    <li class="page-item @(@Model.PageInfo.PageNumber == i ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
+            }
+
+            @if (Model.PageInfo.HasNextPage && Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
+                {
+                <li class="page-item">
+                <a class="page-link" href="?page=@(Model.PageInfo.PageNumber + 1)" aria-label="Следующая">
+                    <span aria-hidden="true">»</span>
+                    <span class="sr-only">Следующая</span>
+                </a>
+                </li>
+            }
+             @if (Model.PageInfo.TotalPages > Model.PageInfo.PageNumber && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
+             {
+                <li class="page-item">
+                <a class="page-link" href="?page=@(Model.PageInfo.TotalPages)">
+                    Последняя
+                </a>
+                </li>
+            }
+        </ul>
+        </nav>
+    }
+} else {
+    <p>Пока в базе нет ни одного фильма. Для редактирования каталога Вы должны быть авторизованы.</p>
+}
