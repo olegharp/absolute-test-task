@@ -91,10 +91,9 @@ namespace FilmsCatalog.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Title,Description,CreatorIdentityName,ReleaseYear,Director,Poster,PosterFile")] Movie movie)
         {
+            movie = uploadPoster(movie);
             if (ModelState.IsValid)
             {
-                movie = uploadPoster(movie);
-            
                 movie.CreatorIdentityName = User.Identity.Name;
                 _context.Add(movie);
                 await _context.SaveChangesAsync();
@@ -139,11 +138,11 @@ namespace FilmsCatalog.Controllers
                 return NotFound();
             }
 
+            movie = uploadPoster(movie);
             if (ModelState.IsValid)
             {
                 try
                 {
-                    movie = uploadPoster(movie);
                     movie.CreatorIdentityName = User.Identity.Name;
                     _context.Update(movie);
                     await _context.SaveChangesAsync();
@@ -216,17 +215,24 @@ namespace FilmsCatalog.Controllers
             if(movie.PosterFile != null)
             {
                 byte[] imageData = null;
-                using (var binaryReader = new BinaryReader(movie.PosterFile.OpenReadStream()))
+                try
                 {
-                    imageData = binaryReader.ReadBytes((int)movie.PosterFile.Length);
-                    if (imageData.Length < 2097152)
+                    using (var binaryReader = new BinaryReader(movie.PosterFile.OpenReadStream()))
                     {
-                        movie.Poster = imageData;
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("PosterFile", "Размер изображения не должен превышать 2MB");
-                    }
+                        imageData = binaryReader.ReadBytes((int)movie.PosterFile.Length);
+                        if (imageData.Length < 2097152)
+                        {
+                            movie.Poster = imageData;
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("PosterFile", "Размер изображения не должен превышать 2MB");
+                        }
+                    } 
+                }
+                catch (Exception)
+                {
+                    ModelState.AddModelError("PosterFile", "Непредвиденная ошибка. Попробуйте другой файл");
                 }
             }
             return movie;

@@ -33,6 +33,7 @@
                 <label asp-for="PosterFile" class="control-label"></label>
                 <input asp-for="PosterFile" type="file" accept="image/jpeg,image/png" hidden />
                 <div id="poster-container" title="Кликните для загрузки"></div>
+                <span asp-validation-for="PosterFile" class="text-danger"></span>
             </div>
             <div class="flex-container">
                 <div>
