@@ -25,15 +25,11 @@ namespace FilmsCatalog.Controllers
         }
 
         // GET: Movies
-        public async Task<IActionResult> Index(int page)
+        public async Task<IActionResult> Index(int? page)
         {
-            // задать количество записей на странице
-            int perPage = 1;
-            // задать максимальное количество кнопок (номеров страниц) пагинации
-            int paginationPageCount = 3;
-            int PageNumber = page != 0 ? page : 1;
             IQueryable<Movie> source = _context.Movie;
             int totalCount = await _context.Movie.CountAsync();
+            PageInfo pageInfo = new PageInfo(totalCount, page);
             var movies = await source
                             .Join(_context.Users,
                                 s => s.CreatorIdentityName,
@@ -48,11 +44,10 @@ namespace FilmsCatalog.Controllers
                                     IsCreator = s.CreatorIdentityName == User.Identity.Name,
                                 })
                             .OrderByDescending(e => e.ReleaseYear)
-                            .Skip((PageNumber - 1) * perPage)
-                            .Take(perPage)
+                            .Skip((pageInfo.CurrentPage - 1) * pageInfo.PageSize)
+                            .Take(pageInfo.PageSize)
                             .ToListAsync();
 
-            PageInfo pageInfo = new PageInfo(totalCount, PageNumber, perPage, paginationPageCount);
             IndexViewModel ivm = new IndexViewModel { PageInfo = pageInfo, Movies = movies };
             return View(ivm);
         }

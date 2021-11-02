@@ -4,23 +4,45 @@ namespace FilmsCatalog.Models
 {
     public class PageInfo
     {
-        public int PageNumber { get; private set; }
+        public int CurrentPage { get; private set; }
         public int TotalPages { get; private set; }
-        public int TotalItemsCount { get; private set; }
-        public int PaginationPageCount { get; private set; }
+        public int TotalItems { get; private set; }
+        public int PageSize { get; private set; }
+        public int StartPage { get; private set; }
+        public int EndPage { get; private set; }
 
-        public PageInfo(int totalCount, int pageNumber, int pageSize, int paginationPageCount)
+        public PageInfo(int totalItems, int? page, int pageSize = 10    )
         {
-            TotalItemsCount = totalCount;
-            PageNumber = pageNumber;
-            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-            PaginationPageCount = paginationPageCount % 2 == 0 ? paginationPageCount - 1 : paginationPageCount;
+            var currentPage = (page ?? 0) != 0 ? (int)page : 1;
+            var totalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)pageSize);
+            var startPage = currentPage - 5;
+            var endPage = currentPage + 4;
+            if (startPage <= 0)
+            {
+                endPage -= (startPage - 1);
+                startPage = 1;
+            }
+            if (endPage > totalPages)
+            {
+                endPage = totalPages;
+                if (endPage > 10)
+                {
+                    startPage = endPage - 9;
+                }
+            }
+
+            TotalItems = totalItems;
+            CurrentPage = currentPage;
+            PageSize = pageSize;
+            TotalPages = totalPages;
+            StartPage = startPage;
+            EndPage = endPage;
         }
         public bool HasPreviousPage
         {
             get
             {
-                return (PageNumber > 1);
+                return (CurrentPage > 1);
             }
         }
  
@@ -28,7 +50,7 @@ namespace FilmsCatalog.Models
         {
             get
             {
-                return (PageNumber < TotalPages);
+                return (CurrentPage < TotalPages);
             }
         }
     }

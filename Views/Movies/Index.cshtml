@@ -2,10 +2,6 @@
 
 @{
     ViewData["Title"] = "Каталог";
-    int iterationMax = 
-        (Model.PageInfo.PageNumber + Model.PageInfo.PaginationPageCount / 2) < Model.PageInfo.TotalPages ? 
-        Model.PageInfo.PageNumber + Model.PageInfo.PaginationPageCount / 2 :
-        Model.PageInfo.TotalPages; 
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -14,7 +10,7 @@
     <a asp-action="Create">Создать карточку фильма</a>
 </p>
 
-@if(Model.PageInfo.TotalItemsCount > 0){
+@if(Model.PageInfo.TotalItems > 0){
 
     <table class="table">
         <thead>
@@ -69,62 +65,44 @@
         </tbody>
     </table>
 
-    @if(Model.PageInfo.TotalPages > 1){
+    @if(Model.PageInfo.EndPage > 1){
         <nav aria-label="Каталог фильмов">
-        <ul class="pagination justify-content-center">
-            @if (Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
-            {
-                <li class="page-item">
+            <ul class="pagination justify-content-center">
+
+                <li class="page-item @(Model.PageInfo.HasPreviousPage ? " " : " disabled" )">
                 <a class="page-link" href="?page=1">
                     Первая
                 </a>
                 </li>
-            }
-            @if (Model.PageInfo.HasPreviousPage && Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
-            {
-                <li class="page-item">
-                <a class="page-link" href="?page=@(Model.PageInfo.PageNumber - 1)" aria-label="Предыдущая">
+
+                <li class="page-item @(Model.PageInfo.HasPreviousPage ? " " : " disabled" )">
+                <a class="page-link" href="?page=@(Model.PageInfo.CurrentPage - 1)" aria-label="Предыдущая">
                     <span aria-hidden="true">«</span>
                     <span class="sr-only">Предыдущая</span>
                 </a>
                 </li>
-            }
-            @if (Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount)
-            {
-                @for (int i = Model.PageInfo.PageNumber - Model.PageInfo.PaginationPageCount / 2 ; i <= iterationMax; i++)
+        
+
+                @for (var i = Model.PageInfo.StartPage; i <= Model.PageInfo.EndPage; i++)
                 {
-                    <li class="page-item @(@Model.PageInfo.PageNumber == i ? "active" : "")">
+                    <li class="page-item @(i == Model.PageInfo.CurrentPage ? "active" : "")">
                         <a class="page-link" href="?page=@i">@i</a>
                     </li>
                 }
 
-            }else{
-                @for (int i = 1; i <= Model.PageInfo.TotalPages; i++)
-                {
-                    <li class="page-item @(@Model.PageInfo.PageNumber == i ? "active" : "")">
-                        <a class="page-link" href="?page=@i">@i</a>
-                    </li>
-                }
-            }
-
-            @if (Model.PageInfo.HasNextPage && Model.PageInfo.TotalPages > Model.PageInfo.PaginationPageCount && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
-                {
-                <li class="page-item">
-                <a class="page-link" href="?page=@(Model.PageInfo.PageNumber + 1)" aria-label="Следующая">
+                <li class="page-item @(Model.PageInfo.HasNextPage ? " " : " disabled" )">
+                <a class="page-link" href="?page=@(Model.PageInfo.CurrentPage + 1)" aria-label="Следующая">
                     <span aria-hidden="true">»</span>
                     <span class="sr-only">Следующая</span>
                 </a>
                 </li>
-            }
-             @if (Model.PageInfo.TotalPages > Model.PageInfo.PageNumber && Model.PageInfo.PageNumber > Model.PageInfo.PaginationPageCount)
-             {
-                <li class="page-item">
+
+                <li class="page-item @(Model.PageInfo.HasNextPage ? " " : " disabled" )">
                 <a class="page-link" href="?page=@(Model.PageInfo.TotalPages)">
                     Последняя
                 </a>
                 </li>
-            }
-        </ul>
+            </ul>
         </nav>
     }
 } else {

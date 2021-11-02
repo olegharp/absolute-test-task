@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace FilmsCatalog.Models
 {
@@ -14,6 +15,7 @@ namespace FilmsCatalog.Models
         } 
     }
 
+    [Index(nameof(ReleaseYear))]
     public class Movie
     {
         public int ID { get; set; }
