@@ -11,12 +11,15 @@ namespace FilmsCatalog.Models
         public int StartPage { get; private set; }
         public int EndPage { get; private set; }
 
-        public PageInfo(int totalItems, int? page, int pageSize = 10    )
+        public PageInfo(int totalItems, int? page, int pageSize, int pagingLinkNumber)
         {
             var currentPage = (page ?? 0) != 0 ? (int)page : 1;
             var totalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)pageSize);
-            var startPage = currentPage - 5;
-            var endPage = currentPage + 4;
+            if(totalPages < pagingLinkNumber)
+                pagingLinkNumber = totalPages;
+            var startPage = currentPage - pagingLinkNumber / 2;
+            var endPage = currentPage + pagingLinkNumber / 2;
+
             if (startPage <= 0)
             {
                 endPage -= (startPage - 1);
@@ -25,11 +28,15 @@ namespace FilmsCatalog.Models
             if (endPage > totalPages)
             {
                 endPage = totalPages;
-                if (endPage > 10)
+                if (endPage > pageSize)
                 {
-                    startPage = endPage - 9;
+                    startPage = endPage - (pageSize - 1);
                 }
             }
+            if(endPage - startPage < pagingLinkNumber - 1)
+                startPage = endPage - (pagingLinkNumber - 1);
+            if(endPage - startPage > pagingLinkNumber - 1)
+                endPage = startPage + pagingLinkNumber - 1;
 
             TotalItems = totalItems;
             CurrentPage = currentPage;

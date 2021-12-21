@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using FilmsCatalog.Models;
 using FilmsCatalog.Data;
 
@@ -17,11 +18,16 @@ namespace FilmsCatalog.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly int _pageSize;
+        private readonly int _pagingLinkNumber;
 
-        public MoviesController(ApplicationDbContext context, UserManager<User> userManager)
+
+        public MoviesController(IConfiguration config, ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _pageSize = config.GetValue<int>("Settings:PageSize", 10);
+            _pagingLinkNumber = config.GetValue<int>("Settings:PagingLinkNumber", 3);
         }
 
         // GET: Movies
@@ -29,7 +35,7 @@ namespace FilmsCatalog.Controllers
         {
             IQueryable<Movie> source = _context.Movie;
             int totalCount = await _context.Movie.CountAsync();
-            PageInfo pageInfo = new PageInfo(totalCount, page);
+            PageInfo pageInfo = new PageInfo(totalCount, page, _pageSize, _pagingLinkNumber);
             var movies = await source
                             .Join(_context.Users,
                                 s => s.CreatorIdentityName,
