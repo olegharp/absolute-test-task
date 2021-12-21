@@ -18,25 +18,13 @@ namespace FilmsCatalog.Models
             if(totalPages < pagingLinkNumber)
                 pagingLinkNumber = totalPages;
             var startPage = currentPage - pagingLinkNumber / 2;
-            var endPage = currentPage + pagingLinkNumber / 2;
-
             if (startPage <= 0)
-            {
-                endPage -= (startPage - 1);
                 startPage = 1;
-            }
-            if (endPage > totalPages)
-            {
+            var endPage = startPage + pagingLinkNumber - 1;
+            if(endPage > totalPages){
                 endPage = totalPages;
-                if (endPage > pageSize)
-                {
-                    startPage = endPage - (pageSize - 1);
-                }
-            }
-            if(endPage - startPage < pagingLinkNumber - 1)
                 startPage = endPage - (pagingLinkNumber - 1);
-            if(endPage - startPage > pagingLinkNumber - 1)
-                endPage = startPage + pagingLinkNumber - 1;
+            }
 
             TotalItems = totalItems;
             CurrentPage = currentPage;
