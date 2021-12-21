@@ -84,7 +84,7 @@ namespace FilmsCatalog.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Title,Description,CreatorIdentityName,ReleaseYear,Director,Poster,PosterFile")] Movie movie)
+        public async Task<IActionResult> Create([FromBody] Movie movie)
         {
             movie = uploadPoster(movie);
             if (ModelState.IsValid)
@@ -107,14 +107,13 @@ namespace FilmsCatalog.Controllers
             }
 
             var movie = await _context.Movie.FindAsync(id);
-
-            if(!IsCreator(movie.CreatorIdentityName))
-                return RedirectToAction(nameof(Index));
-
             if (movie == null)
             {
                 return NotFound();
             }
+
+            if(!IsCreator(movie.CreatorIdentityName))
+                return RedirectToAction(nameof(Index));
 
             return View(movie);
         }
@@ -125,8 +124,11 @@ namespace FilmsCatalog.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Title,Description,CreatorIdentityName,ReleaseYear,Director,Poster,PosterFile")] Movie movie)
+        public async Task<IActionResult> Edit(int id, [FromBody] Movie movie)
         {
+
+            if(!IsCreator(movie.CreatorIdentityName))
+                return RedirectToAction(nameof(Index));
 
             if (id != movie.ID)
             {
@@ -187,6 +189,12 @@ namespace FilmsCatalog.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var movie = await _context.Movie.FindAsync(id);
+            if (movie == null)
+            {
+                return NotFound();
+            }
+            if(!IsCreator(movie.CreatorIdentityName))
+                return RedirectToAction(nameof(Index));
             _context.Movie.Remove(movie);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
