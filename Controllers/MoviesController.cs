@@ -33,6 +33,7 @@ namespace FilmsCatalog.Controllers
         // GET: Movies
         public async Task<IActionResult> Index(int? page)
         {
+            await FillDb();
             IQueryable<Movie> source = _context.Movie;
             int totalCount = await _context.Movie.CountAsync();
             PageInfo pageInfo = new PageInfo(totalCount, page, _pageSize, _pagingLinkNumber);
@@ -90,16 +91,27 @@ namespace FilmsCatalog.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([FromBody] Movie movie)
+        public async Task<IActionResult> Create(Movie movie)
         {
             movie = uploadPoster(movie);
-            if (ModelState.IsValid)
+            try
             {
-                movie.CreatorIdentityName = User.Identity.Name;
-                _context.Add(movie);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    movie.CreatorIdentityName = User.Identity.Name;
+                    _context.Add(movie);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
             }
+            catch (DbUpdateException /* ex */)
+            {
+                //Log the error (uncomment ex variable name and write a log.
+                ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists " +
+                    "see your system administrator.");
+            }
+
             return View(movie);
         }
 
@@ -130,16 +142,15 @@ namespace FilmsCatalog.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [FromBody] Movie movie)
+        public async Task<IActionResult> Edit(int id, Movie movie)
         {
-
-            if(!IsCreator(movie.CreatorIdentityName))
-                return RedirectToAction(nameof(Index));
-
             if (id != movie.ID)
             {
                 return NotFound();
             }
+
+            if(!IsCreator((await _context.Movie.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id)).CreatorIdentityName))
+                return RedirectToAction(nameof(Index));
 
             movie = uploadPoster(movie);
             if (ModelState.IsValid)
@@ -201,9 +212,18 @@ namespace FilmsCatalog.Controllers
             }
             if(!IsCreator(movie.CreatorIdentityName))
                 return RedirectToAction(nameof(Index));
-            _context.Movie.Remove(movie);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            try
+            {
+                _context.Movie.Remove(movie);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException /* ex */)
+            {
+                //Log the error (uncomment ex variable name and write a log.)
+                return RedirectToAction(nameof(Delete), new { id = id, saveChangesError = true });
+            }
         }
 
         private bool MovieExists(int id)
@@ -229,14 +249,15 @@ namespace FilmsCatalog.Controllers
                     using (var binaryReader = new BinaryReader(movie.PosterFile.OpenReadStream()))
                     {
                         imageData = binaryReader.ReadBytes((int)movie.PosterFile.Length);
-                        if (imageData.Length < 2097152)
-                        {
-                            movie.Poster = imageData;
-                        }
-                        else
-                        {
-                            ModelState.AddModelError("PosterFile", "Размер изображения не должен превышать 2MB");
-                        }
+                        movie.Poster = imageData;
+                        // if (imageData.Length < 2097152)
+                        // {
+                        //     movie.Poster = imageData;
+                        // }
+                        // else
+                        // {
+                        //     ModelState.AddModelError("PosterFile", "Размер изображения не должен превышать 2MB");
+                        // }
                     } 
                 }
                 catch (Exception)
@@ -250,6 +271,33 @@ namespace FilmsCatalog.Controllers
         private bool IsCreator(string creatorIdentityName)
         {
             return User.Identity.Name == creatorIdentityName;
+        }
+
+        // заполнение базы тестовыми данными
+        private async Task FillDb()
+        {
+            if(!User.Identity.IsAuthenticated)
+                return;
+                
+            var movie = await _context.Movie
+                .FirstOrDefaultAsync(m => m.Title == "Фильм 1");
+                
+            if (movie == null)
+            {
+                Movie m = new Movie{
+                    CreatorIdentityName = User.Identity.Name,
+                    Title = "Фильм",
+                    ReleaseYear = 1895
+                };
+                for (int i = 1; i <= 100; i++)
+                {
+                    m.ID = 0;
+                    m.Title = $"Фильм {i}";
+                    m.ReleaseYear += 1;
+                    _context.Add(m);
+                    await _context.SaveChangesAsync();
+                }
+            }
         }
     }
 }
